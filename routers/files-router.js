@@ -34,19 +34,19 @@ const filesRouter = ({ db }) => {
           'Content-Type': (file.metadata || {}).mimeType || 'video/*',
         })
 
-        bucket.openDownloadStream(_id, { start, end })
-          .once('error', () => { res.sendStatus(500) })
+        const ds = bucket.openDownloadStream(_id, { start, end: end + 1 })
+        ds.once('error', () => { res.sendStatus(500) })
           .pipe(res)
       } else {
-        // res.writeHead(200, {
-        //   'Content-Length': file.length,
-        //   'Content-Disposition': `attachment; filename="${file.filename}"`,
-        //   'Content-Type': (file.metadata || {}).mimeType || 'video/*',
-        // })
+        res.writeHead(200, {
+          'Content-Length': file.length,
+          'Content-Disposition': `attachment; filename="${file.filename}"`,
+          'Content-Type': (file.metadata || {}).mimeType || 'video/*',
+        })
 
-        // bucket.openDownloadStream(_id)
-        //   .once('error', () => { res.sendStatus(500) })
-        //   .pipe(res)
+        bucket.openDownloadStream(_id)
+          .once('error', () => { res.sendStatus(500) })
+          .pipe(res)
       }
     } catch (error) {
       console.info(error)
@@ -71,7 +71,7 @@ const filesRouter = ({ db }) => {
           <button type="submit">Submit</button>
         </form>
         <div style="display: flex; flex-wrap: wrap; justify-content: space-evenly;">
-          ${files.map(file => `<video style="width: 45%; height: 400px;" src="/files/${file._id}" autoplay controls></video>`).join('')}
+          ${files.map(file => `<video style="width: 45%; height: 400px;" src="/files/${file._id}" controls></video>`).join('')}
         </div>
       </body>
     </html>`)
