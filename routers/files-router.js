@@ -7,18 +7,19 @@ const filesRouter = ({ db }) => {
   const router = express.Router()
   router.get('/:id', async (req, res) => {
     const _id = ObjectID(req.params.id)
+    const isThumbnail = req.query.thumbnail
 
     const { range } = req.headers
 
     try {
-      const file = await db.collection('testBucket.files').findOne({ _id })
+      const file = await db.collection(isThumbnail ? 'testThumbnailBucket.files' : 'testBucket.files').findOne({ _id })
 
       if (_.isNil(file)) {
         res.sendStatus(404)
         return
       }
 
-      const bucket = new GridFSBucket(db, { bucketName: 'testBucket' })
+      const bucket = new GridFSBucket(db, { bucketName: isThumbnail ? 'testThumbnailBucket' : 'testBucket' })
 
       if (range) {
         const parts = range.replace('bytes=', '').split('-')
@@ -55,41 +56,33 @@ const filesRouter = ({ db }) => {
   })
   router.get('/', async (req, res) => {
     const files = await db.collection('testBucket.files').find().toArray()
-
-    res.send(`
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
-      </head>
-      <body>
-        <h4>Home</h4>
-        <form action="files" method="POST" enctype="multipart/form-data">
-          <input type="file" name="upload" multiple accept="video/*">
-          <button type="submit">Submit</button>
-        </form>
-        <div style="display: flex; flex-wrap: wrap; justify-content: space-evenly;">
-          ${files.map(file => `<video style="width: 45%; height: 400px;" src="/files/${file._id}" controls></video>`).join('')}
-        </div>
-      </body>
-    </html>`)
+    res.send(files)
   })
-  router.post('/', (req, res) => {
+  router.post('/', async (req, res) => {
     const { headers } = req
 
-    const busboy = new Busboy({ headers })
+    const busboy = new Busboy({ headers, limits: { files: 2 } })
+    const _id = new ObjectID()
 
     busboy
-      .on('file', (_, file, filename, __, mimeType) => {
-        const bucket = new GridFSBucket(db, { bucketName: 'testBucket' })
-        const uploadStream = bucket.openUploadStream(filename, { metadata: { mimeType } })
+      .on('file', (fieldname, file, filename, _, mimeType) => {
+        if (fieldname === 'thumbnail') {
+          const bucket = new GridFSBucket(db, { bucketName: 'testThumbnailBucket' })
+          const uploadStream = bucket.openUploadStreamWithId(_id, filename, { metadata: { mimeType } })
 
-        file.pipe(uploadStream)
+          file.pipe(uploadStream)
+        } else if (fieldname === 'file') {
+          const bucket = new GridFSBucket(db, { bucketName: 'testBucket' })
+          const uploadStream = bucket.openUploadStreamWithId(_id, filename, { metadata: { mimeType } })
+
+          file.pipe(uploadStream)
+        } else {
+          res.status(400).send({ error: 'Invalid file field...! :"{' })
+          busboy.end()
+        }
       })
       .once('finish', () => {
-        res.redirect('/files')
+        res.sendStatus(201)
       })
 
     req.pipe(busboy)
