@@ -1,28 +1,23 @@
-import Koa from 'koa'
+const express = require('express')
+const bodyParser = require('body-parser')
+const { authRouter, filesRouter } = require('./routers')
 
-const app = new Koa()
+/**
+ * @param {Object} db: 
+ */
+const createApp = async ({ db } = {}) => {
+  const app = express()
 
-// logger
+  app.use(bodyParser.json())
 
-app.use(async (ctx, next) => {
-  await next()
-  const rt = ctx.response.get('X-Response-Time')
-  console.log(`${ctx.method} ${ctx.url} - ${rt}`)
-})
+  // app.use(appendJwt)
+  // FIXME: Not using db like this...!
+  app.use('/auth', authRouter({ db }))
+  app.use('/files', filesRouter({ db }))
 
-// x-response-time
+  app.use(express.static('public'))
 
-app.use(async (ctx, next) => {
-  const start = Date.now()
-  await next()
-  const ms = Date.now() - start
-  ctx.set('X-Response-Time', `${ms}ms`)
-})
+  return app
+}
 
-// response
-
-app.use(async ctx => {
-  ctx.body = 'Hello World'
-})
-
-app.listen(3000)
+module.exports = { createApp }

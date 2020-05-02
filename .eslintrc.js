@@ -18,5 +18,8 @@ module.exports = {
   rules: {
     semi: ["error", "never"],
     quotes: ["error", "single", { "avoidEscape": true }],
+    'comma-dangle': ["error", "always-multiline"],
+    'no-unused-expressions': 'off',
+    'no-useless-return': 'off',
   }
 }
