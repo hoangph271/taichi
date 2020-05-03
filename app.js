@@ -5,7 +5,7 @@ const cors = require('cors')
 const { authRouter, filesRouter } = require('./routers')
 
 /**
- * @param {Object} db: 
+ * @param {Object} db
  */
 const createApp = async ({ db } = {}) => {
   const app = express()
@@ -13,11 +13,11 @@ const createApp = async ({ db } = {}) => {
   app.use(bodyParser.json())
   app.use(cors())
 
-  // app.use(appendJwt)
-  // FIXME: Not using db like this...!
+  // app.use(appendJwt) // FIXME: What is this...?
   app.use('/auth', authRouter({ db }))
   app.use('/files', filesRouter({ db }))
 
+  
   app.use(express.static('public'))
 
   return app

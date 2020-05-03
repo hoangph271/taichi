@@ -21,7 +21,7 @@ const authRouter = ({ db }) => {
   router.post('/', async (req, res) => {
     const { username, password } = req.body
 
-    const user = await db.users.findOne({ username })
+    const user = await db.collection('users').findOne({ username })
 
     if (_.isNil(user)) {
       res.status(404).send({ error: 'username not found' })
@@ -31,7 +31,7 @@ const authRouter = ({ db }) => {
     const isValidLogin = await bcrypt.compare(password, user.password)
 
     if (isValidLogin) {
-      jwt.sign({ username }, JWT_SECRET, (err, token) => {
+      jwt.sign({ username }, JWT_SECRET, (err, jwt) => {
         if (err) {
           res
             .status(500)
@@ -41,8 +41,7 @@ const authRouter = ({ db }) => {
 
         res
           .status(201)
-          .header('authorization', token)
-          .send({ error: 'incorrect credentials' })
+          .send({ username, jwt })
       })
     } else {
       res.status(401).send({ error: 'incorrect credentials' })
