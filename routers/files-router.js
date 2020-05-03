@@ -63,7 +63,7 @@ const filesRouter = ({ db }) => {
 
     const busboy = new Busboy({ headers, limits: { files: 2 } })
     const _id = new ObjectID()
-    let _filename;
+    let title;
 
     busboy
       .on('file', (fieldname, file, filename, encoding, mimeType) => {
@@ -71,7 +71,7 @@ const filesRouter = ({ db }) => {
           return file.resume()
         }
 
-        if (_.isNil(_filename)) {
+        if (_.isNil(title)) {
           res.status(400).send({ error: 'Invalid form field order...! :"{' })
           file.resume()
           return
@@ -79,7 +79,7 @@ const filesRouter = ({ db }) => {
 
         if (fieldname === 'thumbnail') {
           const bucket = new GridFSBucket(db, { bucketName: 'mediaThumbnailBucket' })
-          const uploadStream = bucket.openUploadStreamWithId(_id, filename, { metadata: { mimeType, encoding } })
+          const uploadStream = bucket.openUploadStreamWithId(_id, filename, { metadata: { mimeType, title, encoding } })
 
           file.pipe(uploadStream)
           return
@@ -99,8 +99,8 @@ const filesRouter = ({ db }) => {
       .once('field', (fieldname, val) => {
         if (res.finished) return
 
-        if (fieldname === 'filename') {
-          _filename = val
+        if (fieldname === 'title') {
+          title = val
         }
       })
       .once('finish', () => {
