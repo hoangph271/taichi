@@ -12,14 +12,14 @@ const filesRouter = ({ db }) => {
     const { range } = req.headers
 
     try {
-      const file = await db.collection(isThumbnail ? 'testThumbnailBucket.files' : 'testBucket.files').findOne({ _id })
+      const file = await db.collection(isThumbnail ? 'mediaThumbnailBucket.files' : 'mediaBucket.files').findOne({ _id })
 
       if (_.isNil(file)) {
         res.sendStatus(404)
         return
       }
 
-      const bucket = new GridFSBucket(db, { bucketName: isThumbnail ? 'testThumbnailBucket' : 'testBucket' })
+      const bucket = new GridFSBucket(db, { bucketName: isThumbnail ? 'mediaThumbnailBucket' : 'mediaBucket' })
 
       if (range) {
         const parts = range.replace('bytes=', '').split('-')
@@ -55,7 +55,7 @@ const filesRouter = ({ db }) => {
     }
   })
   router.get('/', async (req, res) => {
-    const files = await db.collection('testBucket.files').find().toArray()
+    const files = await db.collection('mediaBucket.files').find().toArray()
     res.send(files)
   })
   router.post('/', async (req, res) => {
@@ -67,12 +67,12 @@ const filesRouter = ({ db }) => {
     busboy
       .on('file', (fieldname, file, filename, _, mimeType) => {
         if (fieldname === 'thumbnail') {
-          const bucket = new GridFSBucket(db, { bucketName: 'testThumbnailBucket' })
+          const bucket = new GridFSBucket(db, { bucketName: 'mediaThumbnailBucket' })
           const uploadStream = bucket.openUploadStreamWithId(_id, filename, { metadata: { mimeType } })
 
           file.pipe(uploadStream)
         } else if (fieldname === 'file') {
-          const bucket = new GridFSBucket(db, { bucketName: 'testBucket' })
+          const bucket = new GridFSBucket(db, { bucketName: 'mediaBucket' })
           const uploadStream = bucket.openUploadStreamWithId(_id, filename, { metadata: { mimeType } })
 
           file.pipe(uploadStream)
