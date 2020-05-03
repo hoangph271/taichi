@@ -63,26 +63,56 @@ const filesRouter = ({ db }) => {
 
     const busboy = new Busboy({ headers, limits: { files: 2 } })
     const _id = new ObjectID()
+    let _filename;
 
     busboy
-      .on('file', (fieldname, file, filename, _, mimeType) => {
+      .on('file', (fieldname, file, filename, encoding, mimeType) => {
+        if (res.finished) {
+          return file.resume()
+        }
+
+        if (_.isNil(_filename)) {
+          res.status(400).send({ error: 'Invalid form field order...! :"{' })
+          file.resume()
+          return
+        }
+
         if (fieldname === 'thumbnail') {
           const bucket = new GridFSBucket(db, { bucketName: 'mediaThumbnailBucket' })
-          const uploadStream = bucket.openUploadStreamWithId(_id, filename, { metadata: { mimeType } })
+          const uploadStream = bucket.openUploadStreamWithId(_id, filename, { metadata: { mimeType, encoding } })
 
           file.pipe(uploadStream)
-        } else if (fieldname === 'file') {
+          return
+        }
+
+        if (fieldname === 'file') {
           const bucket = new GridFSBucket(db, { bucketName: 'mediaBucket' })
-          const uploadStream = bucket.openUploadStreamWithId(_id, filename, { metadata: { mimeType } })
+          const uploadStream = bucket.openUploadStreamWithId(_id, filename, { metadata: { mimeType, encoding } })
 
           file.pipe(uploadStream)
-        } else {
-          res.status(400).send({ error: 'Invalid file field...! :"{' })
-          busboy.end()
+          return
+        }
+
+        res.status(400).send({ error: 'Invalid file field...! :"{' })
+        busboy.end()
+      })
+      .once('field', (fieldname, val) => {
+        if (res.finished) return
+
+        if (fieldname === 'filename') {
+          _filename = val
         }
       })
       .once('finish', () => {
+        if (res.finished) return
+
         res.sendStatus(201)
+      })
+      .on('error', (e) => {
+        if (res.finished) return
+
+        console.error(e)
+        res.sendStatus(500)
       })
 
     req.pipe(busboy)
