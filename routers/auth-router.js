@@ -1,20 +1,10 @@
 const express = require('express')
-const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const _ = require('lodash')
-
-// const PWD_HASHES = 12
-const JWT_SECRET = '(node_modules/supertest/lib/test.js:283:11)'
+const { signJwt } = require('../utils/jwt')
 
 // TODO: Auto refresh jwt
-// router.get('/', (req, res) => {
-//   if (_.isNil(req.headers.authorization)) {
-//     res.status(401).send({ error: 'JWT not found' })
-//     return
-//   }
 
-//   // TODO: Validate & send refreshed JWT
-// })
 const authRouter = ({ db }) => {
   const router = express.Router()
 
@@ -31,18 +21,11 @@ const authRouter = ({ db }) => {
     const isValidLogin = await bcrypt.compare(password, user.password)
 
     if (isValidLogin) {
-      jwt.sign({ username }, JWT_SECRET, (err, jwt) => {
-        if (err) {
-          res
-            .status(500)
-            .send({ error: 'server error' })
-          return
-        }
+      const jwt = await signJwt({ username, _id: user._id })
 
-        res
-          .status(201)
-          .send({ username, jwt })
-      })
+      res
+      .status(201)
+      .send({ username, jwt })
     } else {
       res.status(401).send({ error: 'incorrect credentials' })
     }

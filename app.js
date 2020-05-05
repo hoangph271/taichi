@@ -3,7 +3,7 @@ const bodyParser = require('body-parser')
 const morgan = require('morgan')
 const cors = require('cors')
 
-const { authRouter, filesRouter } = require('./routers')
+const routers = require('./routers')
 
 /**
  * @param {Object} db
@@ -15,9 +15,9 @@ const createApp = async ({ db } = {}) => {
   app.use(bodyParser.json())
   app.use(cors())
 
-  // app.use(appendJwt) // FIXME: What is this...?
-  app.use('/auth', authRouter({ db }))
-  app.use('/files', filesRouter({ db }))
+  app.use('/auth', routers.authRouter({ db }))
+  app.use('/users', routers.usersRouter({ db }))
+  app.use('/files', routers.filesRouter({ db }))
 
   
   app.use(express.static('public'))
