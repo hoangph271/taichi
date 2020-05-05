@@ -2,9 +2,12 @@ const { GridFSBucket, ObjectID } = require('mongodb')
 const express = require('express')
 const Busboy = require('busboy')
 const _ = require('lodash')
+const { authMiddleware } = require('../utils/auth-middleware')
 
 const filesRouter = ({ db }) => {
   const router = express.Router()
+  router.use(authMiddleware({ db }))
+
   router.get('/raw/:id', async (req, res) => {
     const _id = ObjectID(req.params.id)
     const isThumbnail = req.query.thumbnail
