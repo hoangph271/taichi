@@ -87,7 +87,7 @@ const filesRouter = ({ db }) => {
 
         if (fieldname === 'file') {
           const bucket = new GridFSBucket(db, { bucketName: 'mediaBucket' })
-          const uploadStream = bucket.openUploadStreamWithId(_id, filename, { metadata: { mimeType, encoding } })
+          const uploadStream = bucket.openUploadStreamWithId(_id, filename, { metadata: { mimeType, title, encoding } })
 
           file.pipe(uploadStream)
           return
