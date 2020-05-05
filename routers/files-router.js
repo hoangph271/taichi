@@ -98,7 +98,16 @@ const filesRouter = ({ db }) => {
     }
   })
   router.get('/', async (req, res) => {
-    const files = await db.collection('mediaBucket.files').find().toArray()
+    const ITEMS_PER_PAGE = 20;
+    const { page = 0 } = req.query
+
+    const total = await db.collection('mediaBucket.files').count()
+    const files = await db.collection('mediaBucket.files')
+      .find()
+      .limit(ITEMS_PER_PAGE)
+      .skip(page * ITEMS_PER_PAGE)
+      .toArray()
+
     const signUrlPromises = files.map(async file => {
       const token = await signJwt({ _id: file._id}, { expiresIn: MS_PER_DAY })
       const signedUrl = `/files/raw?token=${token}`
@@ -109,7 +118,10 @@ const filesRouter = ({ db }) => {
       }
     })
 
-    res.send(await Promise.all(signUrlPromises))
+    res.send({
+      files: await Promise.all(signUrlPromises),
+      total,
+    })
   })
   router.post('/', async (req, res) => {
     const { headers } = req
