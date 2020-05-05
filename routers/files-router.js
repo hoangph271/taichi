@@ -5,7 +5,7 @@ const _ = require('lodash')
 
 const filesRouter = ({ db }) => {
   const router = express.Router()
-  router.get('/:id', async (req, res) => {
+  router.get('/raw/:id', async (req, res) => {
     const _id = ObjectID(req.params.id)
     const isThumbnail = req.query.thumbnail
 
@@ -49,6 +49,25 @@ const filesRouter = ({ db }) => {
           .once('error', () => { res.sendStatus(500) })
           .pipe(res)
       }
+    } catch (error) {
+      console.info(error)
+      res.sendStatus(500)
+    }
+  })
+  router.get('/:id', async (req, res) => {
+    const _id = ObjectID(req.params.id)
+
+    const { range } = req.headers
+
+    try {
+      const file = await db.collection('mediaBucket.files').findOne({ _id })
+
+      if (_.isNil(file)) {
+        res.sendStatus(404)
+        return
+      }
+
+      res.send(file)
     } catch (error) {
       console.info(error)
       res.sendStatus(500)
