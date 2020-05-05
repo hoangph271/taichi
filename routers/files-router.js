@@ -79,13 +79,14 @@ const filesRouter = ({ db }) => {
 
     try {
       const file = await db.collection('mediaBucket.files').findOne({ _id })
-      const token = await signJwt({ _id: file._id}, { expiresIn: MS_PER_DAY })
-      const signedUrl = `/files/raw?token=${token}`
 
       if (_.isNil(file)) {
         res.sendStatus(404)
         return
       }
+
+      const token = await signJwt({ _id: file._id}, { expiresIn: MS_PER_DAY })
+      const signedUrl = `/files/raw?token=${token}`
 
       res.send({
         ...file,
