@@ -104,6 +104,7 @@ const filesRouter = ({ db }) => {
     const total = await db.collection('mediaBucket.files').count()
     const files = await db.collection('mediaBucket.files')
       .find()
+      .sort({ _id: -1 })
       .limit(ITEMS_PER_PAGE)
       .skip(page * ITEMS_PER_PAGE)
       .toArray()
