@@ -2,9 +2,9 @@ const jwt = require('jsonwebtoken')
 
 const JWT_SECRET = '(node_modules/supertest/lib/test.js:283:11)'
 
-const signJwt = (payload) => {
+const signJwt = (payload, options) => {
   return new Promise((resolve, reject) => {
-    jwt.sign(payload, JWT_SECRET, (err, jwt) => {
+    jwt.sign(payload, JWT_SECRET, options, (err, jwt) => {
       err ? reject(err) : resolve(jwt)
     })
   })
