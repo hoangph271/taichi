@@ -108,7 +108,7 @@ const filesRouter = ({ db }) => {
       containFilters[key.substr(0, key.length - 2)] = new RegExp(req.query[key])
     })
 
-    const total = await db.collection('mediaBucket.files').count()
+    const total = await db.collection('mediaBucket.files').countDocuments()
     const files = await db.collection('mediaBucket.files')
       .find({ ...containFilters })
       .sort({ _id: -1 })
