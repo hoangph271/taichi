@@ -100,10 +100,17 @@ const filesRouter = ({ db }) => {
   router.get('/', async (req, res) => {
     const ITEMS_PER_PAGE = 20;
     const { page = 0 } = req.query
+    const queries = Object.keys(req.query)
+    const contains = queries.filter(query => query.endsWith('_c'))
+
+    const containFilters = {}
+    contains.forEach(key => {
+      containFilters[key.substr(0, key.length - 2)] = new RegExp(req.query[key])
+    })
 
     const total = await db.collection('mediaBucket.files').count()
     const files = await db.collection('mediaBucket.files')
-      .find()
+      .find({ ...containFilters })
       .sort({ _id: -1 })
       .limit(ITEMS_PER_PAGE)
       .skip(page * ITEMS_PER_PAGE)
