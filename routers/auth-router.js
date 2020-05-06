@@ -9,7 +9,7 @@ const authRouter = ({ db }) => {
   const router = express.Router()
 
   router.post('/', async (req, res) => {
-    const { username, password } = req.body
+    const { username = '', password = '' } = req.body
 
     const user = await db.collection('users').findOne({ username })
 
