@@ -43,7 +43,7 @@ const filesRouter = ({ db }) => {
               'Content-Range': `bytes ${start}-${end}/${file.length}`,
               'Accept-Ranges': 'bytes',
               'Content-Length': chunksize,
-              'Content-Disposition': `attachment; filename="${file.filename}"`,
+              'Content-Disposition': `attachment; filename="${encodeURIComponent(file.filename)}"`,
               'Content-Type': (file.metadata || {}).mimeType || 'video/*',
             })
 
@@ -53,7 +53,7 @@ const filesRouter = ({ db }) => {
           } else {
             res.writeHead(200, {
               'Content-Length': file.length,
-              'Content-Disposition': `attachment; filename="${file.filename}"`,
+              'Content-Disposition': `attachment; filename="${encodeURIComponent(file.filename)}"`,
               'Content-Type': (file.metadata || {}).mimeType || 'video/*',
             })
 
