@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "test": "mocha *.test.js --watch",
-    "start": "nodemon index.js"
+    "start": "nodemon index.js",
+    "build": ""
   },
   "devDependencies": {
     "@shelf/jest-mongodb": "^1.1.5",
