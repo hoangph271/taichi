@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb')
 const { createApp } = require('./app')
 
-const PORT = 8080
+const PORT = process.env.PORT || 8080
 const DB_URI = 'mongodb://tc:open_taichi@35.193.125.249/taichi_db'
 const DB_NAME = 'taichi_db'
 
